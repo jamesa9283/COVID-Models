@@ -228,7 +228,7 @@ def solve_and_plot(
            won't pick up any changes to transm or recov.
         """
         
-        if 2<=t<=3:
+        if 2 < t < 3:
             Quaren = 0.001 * transm
         else:
             Quaren = transm
@@ -251,6 +251,6 @@ def solve_and_plot(
 
 
 # Let's set maxT to 20 to see how things pan out
-solve_and_plot(maxT=20, title="Set maxT = 20")
+solve_and_plot(maxT=20, title="Lockdown Effects at $2<t<3$")
 
 

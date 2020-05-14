@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu May 14 20:25:46 2020
+Created on Thu May 14 21:37:40 2020
 
 @author: james
 """
@@ -12,9 +12,14 @@ Created on Thu May 14 20:16:42 2020
 @author: james
 """
 
+import matplotlib.image as mpimg
 import numpy as np
 import pandas as pd
+import seaborn as sns
+from IPython.display import Video
+from ipywidgets import interact, interact_manual
 from matplotlib import pyplot as plt
+from matplotlib.animation import FuncAnimation
 from scipy.integrate import solve_ivp
 
 ## Set up some initial conditions
@@ -41,15 +46,14 @@ transm = 3.2
 # recov = Recovery rate, how quickly people recover, this should be
 # smaller as it takes people longer to recover from a disease.
 recov = 0.23
-death = 1- recov
 
 # maxT = How long we're going to let the model run for.
-maxT = 0.5
+maxT = 1
 
 ## Let's write these in Python.
 
 
-def dS_dT(S, I, transm, recov):
+def dS_dT(S, I, transm):
     """The rate of change of Susceptibles over time.
     
     Args:
@@ -66,10 +70,10 @@ def dS_dT(S, I, transm, recov):
         -0.03168
     """
     # Negative because rate will go down as more Susceptible people get Infected.
-    return -transm * S * I + recov * I
+    return -transm * S * I
 
 
-def dI_dT(S, I, transm, recov, death):
+def dI_dT(S, I, transm, recov):
     """The rate of change of Infected people over time.
     
     Args:
@@ -89,11 +93,10 @@ def dI_dT(S, I, transm, recov, death):
     return (
         transm * S * I  # If people were Susceptible, they'll become Infected next.
         - recov * I  # The more people become Infected, the more people can Recover.
-        - death * I
     )
 
 
-def dD_dT(I, death):
+def dR_dT(I, recov):
     """The rate of change of Recovered people over time.
     
     Args:
@@ -108,7 +111,7 @@ def dD_dT(I, death):
         >> dR_dT(I=0.01, recov=0.23)
         0.0023
     """
-    return death * I  # Anyone who's Infected can Recover.
+    return recov * I  # Anyone who's Infected can Recover.
 
 def SIR(t, y):
     """
@@ -132,9 +135,9 @@ def SIR(t, y):
     """
     S, I, R = y
     return [
-        dS_dT(S, I, transm, recov),
-        dI_dT(S, I, transm, death, recov),
-        dD_dT(I, death),
+        dS_dT(S, I, transm),
+        dI_dT(S, I, transm, recov),
+        dR_dT(I, recov),
     ]
 
 
@@ -173,7 +176,7 @@ def plot_curves(solution, xlim=[0, 10], title=None, add_background=True):
     # Create DataFrame
     df = pd.DataFrame(
         solution.y.T,
-        columns=["Susceptible", "Infected", "Dead"],
+        columns=["Susceptible", "Infected", "Recovered"],
         index=solution.t,
     )
     # Make the plot
@@ -219,7 +222,6 @@ def solve_and_plot(
         >>> solve_and_plot(maxT=20, title="Set maxT = 20")
     """
 
-
     N = 1
     Sstart = N - Istart
 
@@ -228,11 +230,16 @@ def solve_and_plot(
            won't pick up any changes to transm or recov.
         """
         
-        S, I, D = y
+        if 2 < t < 3:
+            Quaren = 0.001 * transm
+        else:
+            Quaren = transm
+        
+        S, I, R = y
         return [
-            dS_dT(S, I, transm, recov),
-            dI_dT(S, I, transm, death, recov),
-            dD_dT(I, death),
+            dS_dT(S, I, Quaren),
+            dI_dT(S, I, Quaren, recov),
+            dR_dT(I, recov),
         ]
 
     solution = solve_ivp(
@@ -245,6 +252,4 @@ def solve_and_plot(
 
 
 # Let's set maxT to 20 to see how things pan out
-solve_and_plot(maxT=8, title="No Immunity")
-
-
+solve_and_plot(maxT=20, title="Lockdown w/ Immunity")

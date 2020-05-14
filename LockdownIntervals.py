@@ -40,8 +40,8 @@ transm = 3.2
 
 # recov = Recovery rate, how quickly people recover, this should be
 # smaller as it takes people longer to recover from a disease.
-recov = 0.23
-death = 1- recov
+death = 0.14417
+recov = 1 - death
 
 # maxT = How long we're going to let the model run for.
 maxT = 0.5
@@ -130,7 +130,7 @@ def SIR(t, y):
     
     .. [1] https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html
     """
-    S, I, R = y
+    S, I, D = y
     return [
         dS_dT(S, I, transm, recov),
         dI_dT(S, I, transm, death, recov),
@@ -228,10 +228,16 @@ def solve_and_plot(
            won't pick up any changes to transm or recov.
         """
         
+        if 2 < t < 12 or 14 <t<24 or 26<t<36:
+            Quaren = 0.001 * transm
+        else:
+            Quaren = transm
+
+        
         S, I, D = y
         return [
-            dS_dT(S, I, transm, recov),
-            dI_dT(S, I, transm, death, recov),
+            dS_dT(S, I, Quaren, recov),
+            dI_dT(S, I, Quaren, death, recov),
             dD_dT(I, death),
         ]
 
@@ -245,6 +251,6 @@ def solve_and_plot(
 
 
 # Let's set maxT to 20 to see how things pan out
-solve_and_plot(maxT=8, title="No Immunity")
+solve_and_plot(maxT=20, title="Lockdown Effects over several intervals")
 
 

@@ -239,4 +239,4 @@ def solve_and_plot(
 
 
 # Let's set maxT to 20 to see how things pan out
-solve_and_plot(maxT=20, title="Set maxT = 20")
+solve_and_plot(maxT=20, title="Base SIR")
